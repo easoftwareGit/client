@@ -1,48 +1,56 @@
+export const homeId = 1;
+export const orderHistoryId = 2;
+export const cartId = 3;
+export const checkoutId = 4;
+export const loginId = 5
+export const registerId = 6;
+export const logoutId = 7;
+
 const MenuItems = [
   {
-    id: 1,
+    id: homeId,
     active: true,
     visible: true,
     href: "/",
     linkText: "Products"
   },
   {
-    id: 2,
+    id: orderHistoryId,
     active: false,
     visible: true,
     href: "/orderhistory",
     linkText: "Order History"
   },
   {
-    id: 3,
+    id: cartId,
     active: false,
     visible: true,
     href: "/cart",
     linkText: "Cart"
   },
   {
-    id: 4,
+    id: checkoutId,
     active: false,
     visible: true,
     href: "/checkout",
     linkText: "Check Out"
   },
   {
-    id: 5,
+    id: loginId,
     active: false,
     visible: true,
     href: "/login",
     linkText: "Log In"
   },
   {
-    id: 6,
+    id: registerId,
     active: false,
     visible: true,
     href: "/register",
     linkText: "Register"
   },
   {
-    id: 7,
+    id: logoutId,
     active: false,
     visible: false,
     href: "/logout",
@@ -51,4 +59,3 @@ const MenuItems = [
 ];
 
 export default MenuItems;
-
