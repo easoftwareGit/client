@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { homeId } from './MenuItems';
+import { Modal } from 'bootstrap';
+import ModalMsg from './ModalMsg';
+
 const string = require("string-sanitizer");
 const { phone } = require('phone');
-const validator = require("express-validator");
 
 const Register = props => {
 
@@ -28,11 +30,18 @@ const Register = props => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfiorm] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    title: "title",
+    message: "message"
+  })
+  let sanitized = {}  
 
   const validateForm = () => {
     let errors = {};
     let isValid = true;
-    let sanitized = {};
+
+    sanitized = {};
 
     // first name
     if (!formData.firstName.trim()) {
@@ -56,7 +65,7 @@ const Register = props => {
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
       isValid = false;
-    } else if (!string.validate.isPassword8to15(formData.email)) {
+    } else if (!string.validate.isEmail(formData.email)) {
       errors.email = 'Email is not valid';
       isValid = false;
     } else {
@@ -107,21 +116,17 @@ const Register = props => {
         errors.confirm = 'Passwords do not match'
         isValid = false;
       } else {
-        sanitized.password = formData.password;
-        sanitized.confirm = formData.confirm;
+        sanitized.password = formData.password;        
       }
     }
 
     setFormErrors(errors);
-    if (isValid) {
-      setFormData(sanitized);
-    }
     return isValid;
   }
 
   const cancelButtonClicked = () => {
     navigate('/');
-    props.parentFunction(homeId)    
+    props.setActiveMenuItem(homeId)    
   }
 
   const handleInputChange = (e) => {
@@ -132,107 +137,186 @@ const Register = props => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log('Form data submitted: ', formData);
-    } else {
-      console.log('Form validation failed');
+      try {      
+        const response = await fetch(`http://localhost:5000/api/register`, {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sanitized)
+        });
+        if (response.status === 200) {
+          navigate('/');
+          props.showRegsiteredMenu();      
+        } else if (response.status === 409) {
+          showModal("Invalid Data", "Email has been already used");
+        } else {
+          console.error('Register request failed with status:', response.status);
+        }        
+      } catch (err) {
+        console.error(err.message);
+      }
+
+    } else {  
+      showModal("Invalid Data", "Registration data is invalid. Enter valid data to register.");
     }
   }  
+
+  const showModal = (title, message) => {
+    
+    setModalInfo({
+      title: title,
+      message: message
+    })
+    var myModal = new Modal(document.getElementById('modalPopup'))
+    myModal.show();
+  }
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   }
 
-  return (       
-    // <form onSubmit={submitForm()}> 
-    <form onSubmit={handleSubmit}> 
-      <div class="row m-3">
-        <div class="col-md-4">
-          <label for="inputFirstName" class="form-label">First Name</label>
-          <input
-            type="text"
-            class={`form-control ${formErrors.firstName && 'is-invalid'}`}            
-            id="inputFirstName"
-            name="firstName"            
-            value={formData.firstName}            
-            onChange={handleInputChange}            
-          />
-          <div class="invalid-feedback">{formErrors.firstName}</div>          
+  const toggleConfirmVisibility = () => {
+    setShowConfiorm(!showConfirm);
+  }  
+
+  return (
+    <div>
+      {/* modal popup message */}
+      <ModalMsg
+        modalId="modalPopup"
+        title={modalInfo.title}
+        message={modalInfo.message}
+      />
+
+      {/* form */}
+      <form onSubmit={handleSubmit}>
+        <div class="row m-3">
+          <div class="col-md-4">
+            <label for="inputFirstName" class="form-label">
+              First Name
+            </label>
+            <input
+              type="text"
+              class={`form-control ${formErrors.firstName && "is-invalid"}`}
+              id="inputFirstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+            />
+            <div class="invalid-feedback">{formErrors.firstName}</div>
+          </div>
         </div>
-      </div>      
-      <div class="row m-3">
-        <div class="col-md-4">
-          <label for="inputLastName" class="form-label">Last Name</label>
-          <input
-            type="text"
-            class={`form-control ${formErrors.lastName && 'is-invalid'}`}
-            id="inputLastName"
-            name="lastName"               
-            onChange={handleInputChange}
-          />
-          <div class="invalid-feedback">{formErrors.lastName}</div>
+        <div class="row m-3">
+          <div class="col-md-4">
+            <label for="inputLastName" class="form-label">
+              Last Name
+            </label>
+            <input
+              type="text"
+              class={`form-control ${formErrors.lastName && "is-invalid"}`}
+              id="inputLastName"
+              name="lastName"
+              onChange={handleInputChange}
+            />
+            <div class="invalid-feedback">{formErrors.lastName}</div>
+          </div>
         </div>
-      </div>      
-      <div class="row m-3">
-        <div class="col-md-4">
-          <label for="inputEmail" class="form-label">Email</label>
-          <input
-            type="text"            
-            class={`form-control ${formErrors.email && 'is-invalid'}`} 
-            id="inputEmail"
-            name="email"            
-            onChange={handleInputChange}
-          />
-          <div class="invalid-feedback">{formErrors.email}</div>
+        <div class="row m-3">
+          <div class="col-md-4">
+            <label for="inputEmail" class="form-label">
+              Email
+            </label>
+            <input
+              type="text"
+              class={`form-control ${formErrors.email && "is-invalid"}`}
+              id="inputEmail"
+              name="email"
+              onChange={handleInputChange}
+            />
+            <div class="invalid-feedback">{formErrors.email}</div>
+          </div>
         </div>
-      </div>      
-      <div class="row m-3">
-        <div class="col-md-4">
-          <label for="inputPhone" class="form-label">Phone</label>
-          <input
-            type="text"            
-            class={`form-control ${formErrors.phone && 'is-invalid'}`} 
-            id="inputPhone"
-            name="phone"            
-            onChange={handleInputChange}
-          />
-          <div class="invalid-feedback">{formErrors.phone}</div>
+        <div class="row m-3">
+          <div class="col-md-4">
+            <label for="inputPhone" class="form-label">
+              Phone
+            </label>
+            <input
+              type="text"
+              class={`form-control ${formErrors.phone && "is-invalid"}`}
+              id="inputPhone"
+              name="phone"
+              onChange={handleInputChange}
+            />
+            <div class="invalid-feedback">{formErrors.phone}</div>
+          </div>
         </div>
-      </div>
-      <div class="row m-3">
-        <div class="col-md-4">
-          <label for="inputPassword" class="form-label">Password</label>
-          <input
-            type="password"            
-            class={`form-control ${formErrors.password && 'is-invalid'}`} 
-            id="inputPassword"
-            name="password"
-            onChange={handleInputChange}
-          />
-          <div class="invalid-feedback">{formErrors.password}</div>
+        <div class="row m-3">
+          <div class="col-md-4">
+            <label for="inputPassword" class="form-label">
+              Password
+            </label>
+            <div class="input-group">
+              <input
+                type={showPassword ? "text" : "password"}
+                class={`form-control ${formErrors.password && "is-invalid"}`}
+                id="inputPassword"
+                name="password"
+                onChange={handleInputChange}
+              />
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+              <div class="invalid-feedback">{formErrors.password}</div>
+            </div>
+          </div>
         </div>
-      </div>      
-      <div class="row m-3">
-        <div class="col-md-4">
-          <label for="inputConfirm" class="form-label">Confirm Password</label>
-          <input
-            type="password"            
-            class={`form-control ${formErrors.confirm && 'is-invalid'}`} 
-            id="inputConfirm"
-            name="confirm"
-            onChange={handleInputChange}
-          />
-          <div class="invalid-feedback">{formErrors.confirm}</div>
+        <div class="row m-3">
+          <div class="col-md-4">
+            <label for="inputConfirm" class="form-label">
+              Confirm Password
+            </label>
+            <div class="input-group">
+              <input
+                type={showConfirm ? "text" : "password"}
+                class={`form-control ${formErrors.confirm && "is-invalid"}`}
+                id="inputConfirm"
+                name="confirm"
+                onChange={handleInputChange}
+              />
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                onClick={toggleConfirmVisibility}
+              >
+                {showConfirm ? "Hide" : "Show"}
+              </button>
+              <div class="invalid-feedback">{formErrors.confirm}</div>
+            </div>
+          </div>
         </div>
-      </div>      
-      <div class="btn-toolbar mt-3 ms-4"> 
-        <button type="submit" id="btnSubmit" class="btn btn-primary me-3" >Register</button>
-        <button type="button" id="btnCancel" class="btn btn-danger" onClick={cancelButtonClicked}>Cancel</button>
-      </div>
-    </form>
-  )
+        <div class="btn-toolbar mt-3 ms-4">
+          <button type="submit" id="btnSubmit" class="btn btn-primary me-3">
+            Register
+          </button>
+          <button
+            type="button"
+            id="btnCancel"
+            class="btn btn-danger"
+            onClick={cancelButtonClicked}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 };
 
 export default Register;

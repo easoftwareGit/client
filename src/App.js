@@ -25,10 +25,14 @@ function App() {
     headerRef.current.setMenuItemActive(menuItemId);
   }
 
+  const showRegsiteredMenu = () => {
+    headerRef.current.showRegsiteredMenu();
+  }
+
   return (
     <Router>
       <Fragment>
-        <Header ref={headerRef}/>
+        <Header ref={headerRef} />
       </Fragment>
       <Routes>
         <Route path="/products" element={<Products />} />
@@ -36,9 +40,17 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<CheckOut />} />
         <Route path="/login" element={<LogIn />} />
-        <Route path="/register" element={<Register parentFunction={setActiveMenuItem} />} />
+        <Route
+          path="/register"
+          element={
+            <Register
+              setActiveMenuItem={setActiveMenuItem}
+              showRegsiteredMenu={showRegsiteredMenu}
+            />
+          }
+        />
         <Route path="/logout" element={<LogOut />} />
-        <Route exact path="/" element={<Home />}/>
+        <Route exact path="/" element={<Home />} />
       </Routes>
     </Router>
   );

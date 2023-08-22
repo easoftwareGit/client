@@ -23,20 +23,6 @@ const Header2 = forwardRef((props, ref) => {
     }
   }));
 
-  // useImperativeHandle(ref, () => ({
-    
-  //   showRegistedMenu() {
-  //     showRegisted()
-  //   }
-  // }));
-
-  // useImperativeHandle(ref, () => ({
-    
-  //   showNotRegistedMenu() {
-  //     showNotRegisted()
-  //   }
-  // }));
-
   const showNotRegisted = () => {
     const updatedNavItems = [...navItems];
     for (let i = 0; i < updatedNavItems.length; i++) {
